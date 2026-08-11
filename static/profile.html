@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+</head>
+<body>
+    <h1>Account Settings</h1>
+
+    <section>
+        <h2>Update Info</h2>
+        <div id="profile-alert"></div>
+        <form id="profile-form">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required minlength="3">
+            
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+            
+            <button type="submit" id="btn-update-profile">Save Changes</button>
+        </form>
+    </section>
+
+    <hr>
+
+    <section>
+        <h2>Change Password</h2>
+        <div id="password-alert"></div>
+        <form id="password-form">
+            <label for="current_password">Current Password:</label>
+            <input type="password" id="current_password" required>
+            
+            <label for="new_password">New Password:</label>
+            <input type="password" id="new_password" required minlength="8">
+            
+            <button type="submit" id="btn-change-password">Update Password</button>
+        </form>
+    </section>
+
+    <script>
+        const token = localStorage.getItem("token");
+
+        document.getElementById("profile-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value;
+            const email = document.getElementById("email").value;
+
+            const res = await fetch("/profile/", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ username, email })
+            });
+
+            const alertBox = document.getElementById("profile-alert");
+            if (res.ok) {
+                alertBox.textContent = "Profile updated successfully!";
+            } else {
+                const err = await res.json();
+                alertBox.textContent = err.detail || "Failed to update profile.";
+            }
+        });
+
+        document.getElementById("password-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const current_password = document.getElementById("current_password").value;
+            const new_password = document.getElementById("new_password").value;
+
+            if (new_password.length < 8) {
+                document.getElementById("password-alert").textContent = "New password must be at least 8 characters.";
+                return;
+            }
+
+            const res = await fetch("/profile/password", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ current_password, new_password })
+            });
+
+            const alertBox = document.getElementById("password-alert");
+            if (res.ok) {
+                alertBox.textContent = "Password changed successfully!";
+            } else {
+                const err = await res.json();
+                alertBox.textContent = err.detail || "Failed to change password.";
+            }
+        });
+    </script>
+</body>
+</html>
